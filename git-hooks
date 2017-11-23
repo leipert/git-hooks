@@ -109,6 +109,7 @@ function run_hooks
         return 1
     fi
     shift 1
+    PARENT=$(ps -o args= $PPID)
     for hook in `list_hooks_in_dir "${dir}" 1`
     do
         export last_run_hook="${hook} $@"
@@ -117,7 +118,7 @@ function run_hooks
             echo -n `basename \`dirname "${hook}"\``
             echo "/`basename "${hook}"`"
         fi
-        ${hook} "$@"
+        ORIGINAL_COMMAND="$PARENT" ${hook} "$@"
     done
 }
 
@@ -170,7 +171,7 @@ function install_hooks
             return 1
         fi
     cmd='#!/usr/bin/env bash
-git-hooks run "$0" "$@"';
+exec git-hooks run "$0" "$@"';
     install_hooks_into "${PWD}" "${cmd}"
     else
         if [ ! -d hooks.old ] ; then
